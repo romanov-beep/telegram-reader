@@ -1,10 +1,15 @@
 /local/
 /Заметки к задачам/
 /state/
+secrets/
 .env
 .env.*
 !.env.example
 config.json
+*.local.json
+*.local.toml
+*.local.yaml
+*.local.yml
 *.sqlite*
 *.db
 *.session
