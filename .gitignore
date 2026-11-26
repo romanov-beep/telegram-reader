@@ -1,0 +1,20 @@
+/local/
+/Заметки к задачам/
+/state/
+.env
+.env.*
+!.env.example
+config.json
+*.sqlite*
+*.db
+*.session
+*.pem
+*.key
+*.p12
+*.pfx
+*.zip
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage

@@ -1,0 +1,32 @@
+[Unit]
+Description=Unofficial Telegram Reader MCP
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=300
+StartLimitBurst=3
+
+[Service]
+Type=simple
+User=telegram-reader
+Group=telegram-reader
+WorkingDirectory=/opt/telegram-reader
+ExecStart=/opt/telegram-reader/.venv/bin/python /opt/telegram-reader/run.py --config /etc/telegram-reader/config.json serve
+Environment=PYTHONDONTWRITEBYTECODE=1
+UMask=0077
+Restart=on-failure
+RestartSec=15
+TimeoutStopSec=30
+MemoryAccounting=true
+MemoryHigh=384M
+MemoryMax=512M
+TasksMax=64
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/telegram-reader
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+LimitCORE=0
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,11 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
+  "mcpServers": {
+    "telegram-reader": {
+      "type": "stdio",
+      "command": "${PLUGIN_ROOT}/.venv/bin/python",
+      "args": ["${PLUGIN_ROOT}/run.py", "stdio"],
+      "cwd": "${PLUGIN_ROOT}"
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "unofficial-telegram-reader",
+  "version": "0.2.2",
+  "description": "Read Telegram messages and folders on request through a private, self-hosted MCP server.",
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Unofficial Telegram Reader",
+        "shortDescription": "Чтение чатов и папок",
+        "longDescription": "Чтение разрешённых облачных чатов личного Telegram-аккаунта через собственный сервер. Поддерживаются папки, поиск и ограниченные страницы истории. Неофициальный клиент Telegram API; отправки и изменения сообщений нет.",
+        "capabilities": [],
+        "defaultPrompt": "Покажи мои папки и прочитай сообщения в выбранном чате."
+      }
+    }
+  }
+}

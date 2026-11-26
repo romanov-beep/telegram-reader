@@ -1,0 +1,4 @@
+-c constraints.txt
+mcp==2.3.0
+uvicorn==0.42.0
+httpx==0.28.1

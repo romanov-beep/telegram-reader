@@ -1,0 +1,27 @@
+name: Build TDLib
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build pinned official TDLib
+        run: |
+          docker run --rm -v "$PWD:/source:ro" -v "$RUNNER_TEMP:/out" debian:13 sh -ec '
+            apt-get update
+            apt-get install -y --no-install-recommends ca-certificates git cmake g++ gperf libssl-dev zlib1g-dev make
+            sh /source/scripts/build-tdlib.sh /tmp/tdlib-build /out/tdlib
+            ldd /out/tdlib/libtdjson.so > /out/tdlib/DEPENDENCIES.txt
+          '
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tdlib-debian13-x86_64
+          path: ${{ runner.temp }}/tdlib/
+          retention-days: 7

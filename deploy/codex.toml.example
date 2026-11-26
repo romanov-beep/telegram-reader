@@ -1,0 +1,8 @@
+# Merge this table into your existing ~/.codex/config.toml; keep other settings.
+# Replace the hostname. Store the init-generated token in the host environment,
+# not in this file. Restart the desktop app after setting its environment.
+[mcp_servers.telegram_reader]
+url = "https://reader.example.org/mcp"
+bearer_token_env_var = "TG_READER_TOKEN"
+startup_timeout_sec = 15
+tool_timeout_sec = 45

@@ -1,0 +1,13 @@
+# Replace with your actual DNS name. Obtain Caddy from your distribution or its
+# official repository. Only Caddy should be reachable on public ports 80/443.
+reader.example.org {
+    request_body {
+        max_size 64KB
+    }
+    reverse_proxy 127.0.0.1:8080 {
+        transport http {
+            response_header_timeout 45s
+        }
+    }
+    # Do not enable access logs containing OAuth queries or authorization headers.
+}
