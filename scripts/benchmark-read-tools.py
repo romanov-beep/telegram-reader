@@ -27,7 +27,7 @@ def load_tools(ref=None, filename=None):
         source = Path(filename).read_text(encoding="utf-8")
     elif ref:
         source = subprocess.check_output(
-            ['git', 'show', f'{ref}:telegram-plugin-integration/telegram_reader/tools.py'],
+            ['git', 'show', f'{ref}:telegram_reader/tools.py'],
             cwd=ROOT, encoding='utf-8')
     else:
         source = (ROOT / 'telegram_reader/tools.py').read_text(encoding='utf-8')
