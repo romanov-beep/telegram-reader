@@ -20,7 +20,10 @@ when the user asks to read or find Telegram content. There is no background expo
    IDs with `telegram_get_message` when the full returned text is needed.
    Follow `next_before_message_id` with the same chat and search query. A short or
    filtered page does not establish that the chat has no other messages.
-4. When the photo's `chat_id` and `message_id` are known, call
+4. To display a photo inline in ChatGPT, use `telegram_show_photo` with the
+   known IDs and let the widget render it. For raw JPEG export in clients
+   without widget support, use `telegram_get_photo`.
+   When the photo's `chat_id` and `message_id` are known, call
    `telegram_get_photo` directly without first calling `telegram_get_message`.
    If the user requests the original, pass `variant=original` on the first call
    without fetching a preview. The original is the largest JPEG rendition

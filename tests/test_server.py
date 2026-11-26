@@ -181,11 +181,11 @@ class HTTPTests(unittest.TestCase):
         self.assert_read_instructions(discovered["instructions"])
         catalog = self.rpc("tools/list", {"_meta": MODERN_META},
                            headers={**headers, "Mcp-Method": "tools/list"}).json()["result"]
-        self.assertEqual(len(catalog["tools"]), 8)
+        self.assertEqual(len(catalog["tools"]), 9)
 
     def test_read_catalog_result_and_safe_failures(self):
         catalog = self.rpc("tools/list").json()["result"]["tools"]
-        self.assertEqual(len(catalog), 8)
+        self.assertEqual(len(catalog), 9)
         for item, expected in zip(catalog, Tools().descriptors()):
             self.assertEqual(item["name"], expected["name"])
             self.assertEqual(item["inputSchema"], expected["inputSchema"])
@@ -199,8 +199,9 @@ class HTTPTests(unittest.TestCase):
         result = self.rpc("tools/call", {"name": "telegram_status", "arguments": {"fail": "PRIVATE"}})
         self.assertTrue(result.json()["result"]["isError"])
         self.assertNotIn("PRIVATE", result.text)
-        for method in ("resources/list", "prompts/list"):
-            self.assertEqual(self.rpc(method).json()["result"][method.split('/')[0]], [])
+        resources = self.rpc("resources/list").json()["result"]["resources"]
+        self.assertEqual([item["uri"] for item in resources], ["ui://telegram-reader/photo-v1.html"])
+        self.assertEqual(self.rpc("prompts/list").json()["result"]["prompts"], [])
         result = self.rpc("tools/call", {"name": "telegram_send_message", "arguments": {}})
         self.assertTrue(result.json()["result"]["isError"])
 
@@ -337,14 +338,14 @@ class SDKClientTests(unittest.IsolatedAsyncioTestCase):
                 self.assertTrue(result.is_error)
                 self.assertNotIn("PRIVATE", result.content[0].text)
                 self.assertEqual(load_policy.call_count, 3)
-                self.assertEqual(len((await session.list_tools()).tools), 8)
+                self.assertEqual(len((await session.list_tools()).tools), 9)
                 self.assertEqual(load_policy.call_count, 3)
         descriptors.assert_called_once_with(stdio=False)
 
     async def check_session(self, session, *, stdio=False):
         self.assertEqual(session.server_info.name, "unofficial-telegram-reader")
         catalog = await session.list_tools()
-        self.assertEqual(len(catalog.tools), len(Tools().descriptors()))
+        self.assertEqual(len(catalog.tools), len(Tools().descriptors()) + 1)
         schemes = [{"type": "noauth"}] if stdio else [{"type": "oauth2", "scopes": ["telegram.read"]}]
         for tool in catalog.tools:
             descriptor = tool.model_dump(by_alias=True)
@@ -463,7 +464,7 @@ class SDKClientTests(unittest.IsolatedAsyncioTestCase):
         self.assertNotIn("PRIVATE", stdout + stderr)
         responses = {row.get("id"): row for row in map(json.loads, stdout.splitlines())}
         self.assertEqual(responses[1]["result"]["protocolVersion"], LEGACY_VERSION)
-        self.assertEqual(len(responses[2]["result"]["tools"]), 8)
+        self.assertEqual(len(responses[2]["result"]["tools"]), 9)
 
     async def test_modern_stdio_accepts_direct_calls_and_recovers_after_invalid_input(self):
         first_call = {"jsonrpc": "2.0", "id": "first-call", "method": "tools/call",

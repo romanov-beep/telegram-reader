@@ -52,3 +52,30 @@ class PhotoWireTests(unittest.IsolatedAsyncioTestCase):
                 self.assertTrue(denied.is_error)
                 self.assertEqual(denied.structured_content["error"], "chat_not_authorized")
                 self.assertTrue(all(block.type == "text" for block in denied.content))
+
+    async def test_chat_widget_exports_only_through_authorized_photo_tool(self):
+        root = Path(__file__).resolve().parent.parent
+        parameters = StdioServerParameters(command=sys.executable,
+                                           args=["-c", PHOTO_STDIO_SCRIPT], cwd=str(root))
+        async with Client(parameters, mode="legacy") as session:
+            catalog = await session.list_tools()
+            widget = next(tool for tool in catalog.tools if tool.name == "telegram_show_photo")
+            uri = widget.meta["ui"]["resourceUri"]
+            resources = await session.list_resources()
+            self.assertIn(uri, [str(item.uri) for item in resources.resources])
+            resource = (await session.read_resource(uri)).contents[0]
+            self.assertEqual(resource.mime_type, "text/html;profile=mcp-app")
+            self.assertIn("ui/notifications/tool-result", resource.text)
+            for variant in ("preview", "original"):
+                result = await session.call_tool(widget.name, {
+                    "chat_id": fixtures.CHAT, "message_id": "123", "variant": variant,
+                })
+                self.assertFalse(result.is_error)
+                self.assertTrue(all(item.type == "text" for item in result.content))
+                self.assertEqual(result.meta["telegramPhotoJpeg"], fixtures.PhotoToolsTest.JPEG)
+                self.assertEqual(result.structured_content["variant"], variant)
+            denied = await session.call_tool(widget.name, {
+                "chat_id": "1", "message_id": "123", "variant": "original",
+            })
+            self.assertTrue(denied.is_error)
+            self.assertNotIn("telegramPhotoJpeg", denied.meta or {})

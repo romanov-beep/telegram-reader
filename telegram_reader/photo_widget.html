@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Фото из Telegram</title>
+<style>
+  :root { color-scheme: light dark; font: 14px system-ui, sans-serif; }
+  body { margin: 0; padding: 8px; box-sizing: border-box; }
+  canvas { display: block; width: auto; max-width: 100%; max-height: 68vh; margin: auto; object-fit: contain; border-radius: 8px; }
+  canvas[hidden] { display: none; }
+  p { margin: 6px 0; text-align: center; }
+</style></head><body>
+<canvas id="photo" role="img" aria-label="Фото из Telegram" hidden></canvas>
+<p id="status" role="status">Загрузка фото…</p>
+<script>
+(() => {
+  const photo = document.getElementById("photo");
+  const status = document.getElementById("status");
+  const host = window.parent;
+  const post = (method, params, id) => host.postMessage(
+    {jsonrpc:"2.0", method, params, ...(id === undefined ? {} : {id})}, "*");
+  let generation = 0;
+  async function show(result) {
+    const ticket = ++generation;
+    const jpeg = result?._meta?.telegramPhotoJpeg;
+    try {
+      if (typeof jpeg !== "string" || jpeg.length > 1398104 ||
+          !/^\/9j\/[A-Za-z0-9+/]+={0,2}$/.test(jpeg)) throw Error();
+      const bytes = Uint8Array.from(atob(jpeg), byte => byte.charCodeAt(0));
+      if (bytes.length > 1048576) throw Error();
+      const bitmap = await createImageBitmap(new Blob([bytes], {type:"image/jpeg"}));
+      try {
+        if (ticket !== generation) return;
+        photo.width = bitmap.width;
+        photo.height = bitmap.height;
+        photo.getContext("2d").drawImage(bitmap, 0, 0);
+      } finally {
+        bitmap.close();
+      }
+      photo.hidden = false;
+      status.hidden = true;
+    } catch {
+      if (ticket !== generation) return;
+      photo.width = 0;
+      photo.height = 0;
+      photo.hidden = true;
+      status.hidden = false;
+      status.textContent = "Фото недоступно.";
+    }
+  }
+  addEventListener("message", ({source, data}) => {
+    if (source !== host || data?.jsonrpc !== "2.0") return;
+    if (data.id === 1 && data.result) post("ui/notifications/initialized", {});
+    if (data.method === "ui/notifications/tool-result") show(data.params);
+  });
+  post("ui/initialize", {
+    appInfo: {name: "Telegram photo", version: "1.0.0"},
+    appCapabilities: {}, protocolVersion: "2026-01-26"
+  }, 1);
+  const savedResult = () => {
+    const data = window.openai?.toolResponseMetadata;
+    const metadata = data?.mcp_tool_result?._meta ?? data?.call_tool_result?._meta ?? data;
+    if (metadata?.telegramPhotoJpeg) show({_meta:metadata});
+  };
+  addEventListener("openai:set_globals", savedResult);
+  savedResult();
+})();
+</script></body></html>
